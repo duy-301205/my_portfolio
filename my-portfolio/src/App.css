@@ -1,0 +1,106 @@
+@import "tailwindcss";
+
+/* CSS variables */
+:root {
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-heading: "Poppins", system-ui, sans-serif;
+  --color-dark-bg: #18181b;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-dark-bg);
+    color: rgba(255, 255, 255, 0.824);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-heading);
+    letter-spacing: -0.02em;
+  }
+}
+
+@keyframes gradientX {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-gradient-x {
+  animation: gradientX 6s ease infinite;
+}
+
+.firefly {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+
+  background: radial-gradient(
+    circle,
+    rgba(180, 240, 255, 1),
+    rgba(125, 211, 252, 0.9) 35%,
+    rgba(125, 211, 252, 0.4) 55%,
+    transparent 70%
+  );
+
+  box-shadow:
+    0 0 6px rgba(125, 211, 252, 0.9),
+    0 0 12px rgba(125, 211, 252, 0.6),
+    0 0 24px rgba(125, 211, 252, 0.4);
+
+  filter: blur(0.5px);
+
+  animation-name: fly, flicker;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1), ease-in-out;
+  animation-iteration-count: infinite, infinite;
+  animation-duration: var(--fly-time), var(--flicker-time);
+  animation-delay: var(--delay);
+}
+
+@keyframes fly {
+  0% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(60px, -40px);
+  }
+  50% {
+    transform: translate(-40px, 60px);
+  }
+  75% {
+    transform: translate(80px, 40px);
+  }
+  100% {
+    transform: translate(0, 0);
+  }
+}
+
+@keyframes flicker {
+  0% {
+    opacity: 0.3;
+  }
+  30% {
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 0.3;
+  }
+}
