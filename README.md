@@ -44,11 +44,11 @@ Trang web được xây dựng nhằm:
 * Hành trình học tập & định hướng nghề nghiệp
 
 ## 🎨 UI/UX Features
-🌙 Dark mode (giao diện tối hiện đại)
-✨ Hiệu ứng nền động (particle animation)
-📱 Responsive (tương thích mobile, tablet, desktop)
-⚡ Navigation bar đơn giản, dễ sử dụng
-🎯 Focus vào trải nghiệm người dùng
+* 🌙 Dark mode (giao diện tối hiện đại)
+* ✨ Hiệu ứng nền động (particle animation)
+* 📱 Responsive (tương thích mobile, tablet, desktop)
+* ⚡ Navigation bar đơn giản, dễ sử dụng
+* 🎯 Focus vào trải nghiệm người dùng
 
 🧰 Công nghệ sử dụng 
 
