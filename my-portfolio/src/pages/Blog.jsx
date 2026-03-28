@@ -14,7 +14,7 @@ export default function Blog() {
     <section className="min-h-screen text-slate-300 pt-16 pb-20">
       <div className="max-w-7xl mx-auto px-2">
         <h1 className="text-3xl font-bold mb-10 text-slate-300">
-          Dưới đây là những bài viết chia sẻ kiến thức và cuộc sống của tôi
+          Dưới đây là những bài viết chia sẻ kiến thức và cuộc sống của mình
         </h1>
         <div className="relative mb-16 max-w-2xl">
           <input

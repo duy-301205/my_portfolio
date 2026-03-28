@@ -46,7 +46,7 @@ export default function About() {
 
         {/* RIGHT – PROFILE */}
         <div className="md:col-span-2 font-black">
-          <h1 className="text-2xl md:text-2.5xl text-white mb-6">
+          <h1 className="text-2xl md:text-2.5xl text-slate-200 mb-6">
             Chào bạn 👋
           </h1>
 
