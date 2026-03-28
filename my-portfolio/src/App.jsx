@@ -5,6 +5,7 @@ import Motivation from "./pages/Motivation";
 import About from "./pages/About";
 import Blog from "./pages/Blog";
 import PostDetail from "./pages/PostDetail";
+import Projects from "./pages/Projects";
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
           <Route path="/motivation" element={<Motivation />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:id" element={<PostDetail />} />
+          <Route path="/projects" element={<Projects />} />
         </Route>
       </Routes>
     </BrowserRouter>
