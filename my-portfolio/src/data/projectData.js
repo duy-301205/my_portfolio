@@ -1,5 +1,13 @@
 export const projects = [
     {
+        id: "duy-personal-space",
+        year: "2026",
+        title: "My Portfolio",
+        tags: ["REACT", "TAILWIND", "LIFE", "TECH BLOG"],
+        description: "Không chỉ là một trang Portfolio, đây là nơi mình lưu giữ hành trình trưởng thành, chia sẻ những bài viết chuyên sâu về Backend và những trải nghiệm thực tế trong cuộc sống của một sinh viên CNTT.",
+        link: "https://github.com/duy-301205/my_portfolio"
+    },
+    {
         id: "summarize-paper-ai",
         year: "2026",
         title: "Summarize Paper AI",
