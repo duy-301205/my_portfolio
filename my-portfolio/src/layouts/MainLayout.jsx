@@ -1,12 +1,14 @@
 import Header from "./Header";
 import Fireflies from "../components/Fireflies";
 import { Outlet } from "react-router-dom";
+import ShootingStars from "../components/ShootingStars";
 
 export default function MainLayout() {
   return (
     <div className="relative min-h-screen">
       {/* Fireflies nền */}
       <Fireflies />
+      <ShootingStars />
 
       {/* Header luôn nổi trên */}
       <Header />
