@@ -576,5 +576,150 @@ Việc tích hợp Cloudinary không chỉ giúp ứng dụng của bạn chuyê
 
 Thử ngay và xem ảnh của bạn xuất hiện trên "mây" kỳ diệu như thế nào nhé! 🚀
   `
+    },
+
+    {
+        "id": "quen-mat-khau-spring-boot-redis-otp-security",
+        "date": "01 tháng 4, 2026",
+        "title": "Quên mật khẩu? Xây dựng hệ thống xác thực OTP 2 lớp với Spring Boot & Redis",
+        "tags": ["SPRING BOOT", "REDIS", "OTP", "SECURITY", "JAVA MAIL"],
+        "description": "Hướng dẫn chi tiết cách triển khai luồng quên mật khẩu bảo mật cao: Xác thực OTP qua Email, cấp Reset Token tạm thời và quản lý phiên làm việc bằng Redis.",
+        "content": `
+Quên mật khẩu là tính năng \"phải có\" nhưng lại dễ gây hổng bảo mật nhất nếu không được thiết kế kỹ lưỡng. Sai lầm lớn nhất là gửi link đổi mật khẩu mà không có thời gian hết hạn hoặc để lộ thông tin nhạy cảm trên URL.
+
+Trong bài viết này, mình sẽ hướng dẫn các bạn cách triển khai luồng **Forgot Password** theo cách làm của mình sử dụng **Redis** làm bộ nhớ đệm và **OTP** làm chìa khóa xác thực.
+
+---
+
+## 1. Tại sao lại là Redis mà không phải Database (PostgreSQL)?
+
+Nhiều bạn thắc mắc tại sao không lưu mã OTP thẳng vào bảng User trong DB. Có 3 lý do \"vàng\" để chọn Redis:
+* **Tự động hủy (TTL):** Redis cho phép đặt thời gian sống cho dữ liệu (ví dụ: OTP chỉ tồn tại 5 phút). Quá hạn, Redis tự xóa, bạn không cần viết code dọn dẹp DB.
+* **Hiệu năng cực cao:** OTP và Reset Token là dữ liệu tạm thời, truy cập trên RAM (Redis) nhanh hơn nhiều so với đọc/ghi ổ cứng (Postgres).
+* **Bảo mật:** Tách biệt dữ liệu xác thực tạm thời ra khỏi dữ liệu người dùng chính thức.
+
+---
+
+## 2. Thiết lập cấu hình hệ thống
+
+### 2.1. Nhà kho tạm thời (Redis Configuration)
+Đảm bảo bạn đã có dependency \`spring-boot-starter-data-redis\`. Chúng ta sử dụng \`StringRedisTemplate\` để thao tác với các Key-Value dạng chuỗi.
+
+\`\`\`java
+@Service
+@RequiredArgsConstructor
+public class ForgotPasswordService {
+    private final StringRedisTemplate redisTemplate;
+    private static final String OTP_PREFIX = \"otp:\";
+    private static final String RESET_TOKEN_PREFIX = \"reset_token:\";
+
+    public void saveOtpToRedis(String email, String otp) {
+        redisTemplate.opsForValue().set(OTP_PREFIX + email, otp, 5, TimeUnit.MINUTES);
+    }
+}
+\`\`\`
+
+### 2.2. Cấu hình \"Máy gửi thư\" (Java Mail Sender)
+Để gửi mail qua Gmail, bạn cần sử dụng **App Password** (Mật khẩu ứng dụng) 16 ký tự của Google thay vì mật khẩu cá nhân.
+
+**Cấu hình trong \`application.yml\`:**
+\`\`\`yaml
+spring:
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: \${MAIL_USERNAME} # Email của bạn
+    password: \${MAIL_PASSWORD} # Mã 16 ký tự App Password
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+\`\`\`
+
+**Viết EmailService để thực thi việc gửi:**
+\`\`\`java
+@Service
+@RequiredArgsConstructor
+public class EmailService {
+    private final JavaMailSender mailSender;
+
+    public void sendOtpMessage(String to, String otp) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(to);
+        message.setSubject(\"Mã xác thực OTP\");
+        message.setText(\"Mã của bạn là: \" + otp + \". Hiệu lực trong 5 phút.\");
+        mailSender.send(message);
+    }
+}
+\`\`\`
+
+---
+
+## 3. Quy trình 3 bước \"Bất khả xâm phạm\"
+
+### Bước 1: Gửi mã xác thực (Send OTP)
+Hệ thống kiểm tra email, sinh mã 6 số ngẫu nhiên, lưu vào Redis và đẩy lệnh gửi mail.
+
+\`\`\`java
+public void sendOTP(SendOtpRequest request) {
+    User user = userRepository.findByEmail(request.getEmail())
+            .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+    String otp = String.format(\"%06d\", new Random().nextInt(1000000));
+    redisTemplate.opsForValue().set(OTP_PREFIX + request.getEmail(), otp, 5, TimeUnit.MINUTES);
+    emailService.sendOtpMessage(request.getEmail(), otp);
+}
+\`\`\`
+
+### Bước 2: Đổi OTP lấy \"Vé thông hành\" (Verify OTP)
+Nếu mã đúng, hệ thống xóa OTP và cấp một **Reset Token (UUID)**. Đây là bằng chứng xác thực hợp lệ để được quyền đổi mật khẩu.
+
+\`\`\`java
+public VerifyOtpResponse verifyOtp(VerifyOtpRequest request) {
+    String storedOtp = redisTemplate.opsForValue().get(OTP_PREFIX + request.getEmail());
+    if(storedOtp == null) throw new AppException(ErrorCode.OTP_EXPIRED);
+    if(!storedOtp.equals(request.getOtp())) throw new AppException(ErrorCode.INVALID_OTP);
+
+    String resetToken = UUID.randomUUID().toString();
+    redisTemplate.opsForValue().set(RESET_TOKEN_PREFIX + request.getEmail(), resetToken, 10, TimeUnit.MINUTES);
+    
+    return VerifyOtpResponse.builder().resetToken(resetToken).build();
+}
+\`\`\`
+
+### Bước 3: Thiết lập mật khẩu mới (Reset Password)
+Mật khẩu mới được mã hóa **BCrypt** và ghi vào Database. Reset Token sẽ bị hủy ngay sau đó.
+
+---
+
+## 4. Cấu hình Security \"Mở đúng chỗ, chốt đúng lúc\"
+
+Vì người dùng chưa đăng nhập, bạn phải mở cửa cho các API này trong \`SecurityConfig\`.
+
+\`\`\`java
+@Bean
+public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    http.authorizeHttpRequests(auth -> auth
+        .requestMatchers(\"/api/auth/forgot-password/**\").permitAll()
+        .anyRequest().authenticated()
+    );
+    return http.build();
+}
+\`\`\`
+
+---
+
+## 5. Những lưu ý \"Sống còn\" cho Developer
+
+1. **Environment Variables:** Tuyệt đối không dán trực tiếp credentials vào code. Luôn dùng biến môi trường.
+2. **Rate Limiting:** Nên giới hạn số lần gửi OTP để tránh bị spam mail server.
+3. **Transaction:** Luôn xóa Reset Token trong Redis sau khi đổi mật khẩu thành công để tránh Token bị tái sử dụng.
+
+## Lời kết
+
+Việc kết hợp **Redis** và **Email OTP** tạo nên một lớp bảo mật vững chắc cho ứng dụng. Hy vọng bài viết này giúp bạn triển khai tính năng Quên mật khẩu một cách chuyên nghiệp và an toàn nhất! 🚀
+    `
     }
 ];
