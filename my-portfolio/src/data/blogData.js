@@ -721,5 +721,101 @@ public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
 Việc kết hợp **Redis** và **Email OTP** tạo nên một lớp bảo mật vững chắc cho ứng dụng. Hy vọng bài viết này giúp bạn triển khai tính năng Quên mật khẩu một cách chuyên nghiệp và an toàn nhất! 🚀
     `
+    },
+    {
+        "id": "real-time-notification-websocket-stomp-spring-boot",
+        "date": "02 tháng 4, 2026",
+        "title": "Bí mật đằng sau 'Tiếng chuông' Real-time: Làm chủ WebSocket & STOMP trong Spring Boot",
+        "tags": ["SPRING BOOT", "WEBSOCKET", "STOMP", "REAL-TIME", "NOTIFICATION"],
+        "description": "Biến ứng dụng của bạn thành hệ thống tương tác tức thì. Hướng dẫn cấu hình WebSocket STOMP để đẩy thông báo cá nhân hóa (Private Notification) mà không cần reload trang.",
+        "content": `
+Bạn đã bao giờ thắc mắc làm sao Facebook hiện thông báo ngay lập tức khi có người thả tim ảnh của bạn? Câu trả lời chính là **WebSocket** - một giao thức cho phép Server 'chủ động' gõ cửa trình duyệt để gửi dữ liệu.
+
+Trong bài viết này, mình sẽ hướng dẫn cách tích hợp WebSocket vào dự án Spring Boot để làm chức năng thông báo 'xịn' như các app lớn.
+
+---
+
+## 1. WebSocket là gì? Tại sao phải dùng nó?
+
+Thông thường, Web hoạt động theo cơ chế **HTTP (Request-Response)**: Client hỏi, Server mới trả lời. Nếu Server có dữ liệu mới (ví dụ: tóm tắt bài báo xong), nó không có cách nào báo cho Client biết trừ khi Client tự F5 trang web.
+
+
+
+**WebSocket** giải quyết vấn đề này bằng cách:
+* **Kết nối 2 chiều (Full-duplex):** Thiết lập một 'đường ống' luôn mở giữa Client và Server.
+* **Đẩy dữ liệu chủ động (Server Push):** Server có thể gửi tin nhắn cho Client bất cứ lúc nào.
+* **Tiết kiệm tài nguyên:** Không cần gửi lại Header rườm rà như HTTP cho mỗi tin nhắn, giúp giảm độ trễ (latency).
+
+---
+
+## 2. Tại sao chọn STOMP làm 'Người đưa thư'?
+
+WebSocket thuần túy chỉ là một 'đường ống' thô. Để gửi tin nhắn có cấu trúc (biết gửi cho ai, loại tin nhắn gì), chúng ta dùng **STOMP (Simple Text Oriented Messaging Protocol)** chạy trên nền WebSocket. Nó giúp việc quản lý các 'kênh' (Topics) và 'hàng đợi' (Queues) trở nên dễ dàng như gửi email.
+
+---
+
+## 3. Cấu hình 'Trạm điều khiển' (Backend Config)
+
+### 3.1. Thiết lập đường ống (WebSocket Configuration)
+Chúng ta cần implements \`WebSocketMessageBrokerConfigurer\` để định nghĩa các tuyến đường cho tin nhắn.
+
+\`\`\`java
+@Configuration
+@EnableWebSocketMessageBroker
+public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
+
+    @Override
+    public void configureMessageBroker(MessageBrokerRegistry config) {
+        // Kích hoạt Broker: /topic cho cộng đồng, /queue cho cá nhân
+        config.enableSimpleBroker(\"/topic\", \"/queue\");
+        config.setApplicationDestinationPrefixes(\"/app\");
+        config.setUserDestinationPrefix(\"/user\");
+    }
+
+    @Override
+    public void registerStompEndpoints(StompEndpointRegistry registry) {
+        // 'Cánh cửa' để Frontend gõ cửa kết nối
+        registry.addEndpoint(\"/ws\")
+                .setAllowedOriginPatterns(\"*\")
+                .withSockJS();
+    }
+}
+\`\`\`
+
+---
+
+## 4. Cách 'Bắn' thông báo cá nhân từ Service
+
+Để gửi thông báo cho một người dùng cụ thể (ví dụ: Duy), chúng ta sử dụng \`SimpMessagingTemplate\`. Spring sẽ dựa vào Email/Username để biết chính xác 'đường ống' nào cần đẩy tin vào.
+
+\`\`\`java
+@Service
+@RequiredArgsConstructor
+public class NotificationService {
+    private final SimpMessagingTemplate messagingTemplate;
+
+    public void sendToUser(String email, NotificationResponse payload) {
+        // Gửi tới đường dẫn: /user/{email}/queue/notifications
+        messagingTemplate.convertAndSendToUser(
+            email, 
+            \"/queue/notifications\", 
+            payload
+        );
+    }
+}
+\`\`\`
+
+---
+
+## 5. Những lưu ý để hệ thống chạy 'mượt'
+
+1. **Security:** Khi kết nối WebSocket (\`/ws\`), đừng quên kiểm tra JWT Token để đảm bảo người dùng hợp lệ mới được mở đường ống.
+2. **SockJS:** Luôn bật \`.withSockJS()\` để hỗ trợ các trình duyệt không tương thích hoặc các môi trường mạng bị chặn WebSocket thuần túy.
+3. **Scale:** Nếu bạn chạy nhiều instance Backend (Microservices), bạn sẽ cần thêm **Redis Pub/Sub** hoặc **RabbitMQ** để làm Broker bên ngoài, giúp đồng bộ tin nhắn giữa các Server.
+
+## Lời kết
+
+WebSocket không chỉ là công nghệ, nó là trải nghiệm người dùng. Việc tích hợp nó vào dự án giúp ứng dụng của bạn 'sống động' và chuyên nghiệp hơn rất nhiều. Chúc các bạn code vui vẻ! 🚀
+`
     }
 ];
