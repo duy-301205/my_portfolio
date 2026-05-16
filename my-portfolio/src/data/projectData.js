@@ -12,7 +12,7 @@ export const projects = [
         year: "2026",
         title: "Summarize Paper AI",
         tags: ["REACT", "FASTAPI", "SPRING BOOT", "RAG"],
-        description: "Hệ thống hỗ trợ tóm tắt bài báo khoa học sử dụng kiến trúc RAG. Backend xử lý bằng FastAPI và lưu trữ dữ liệu thông qua Drupal CMS.",
+        description: "Hệ thống hỗ trợ tóm tắt bài báo khoa học ứng dụng kiến trúc RAG. Trong đó, lõi xử lý ngôn ngữ và truy vấn dữ liệu (AI Backend) được xây dựng bằng FastAPI, kết hợp với Spring Boot đóng vai trò quản trị hệ thống và lưu trữ dữ liệu.",
         link: "https://github.com/duy-301205/summarize_papers"
     },
     {
