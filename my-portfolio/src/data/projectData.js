@@ -16,6 +16,14 @@ export const projects = [
         link: "https://github.com/duy-301205/summarize_papers"
     },
     {
+        id: "chat-web-realtime",
+        year: "2026",
+        title: "Chat Web",
+        tags: ["SPRING BOOT", "REACT", "POSTGRESQL", "WEBSOCKET"],
+        description: "Nền tảng chat web realtime được xây dựng với Spring Boot và React, tập trung vào trải nghiệm giao tiếp mượt mà, kiến trúc backend rõ ràng và khả năng mở rộng cho các tính năng cộng tác trực tuyến.",
+        link: "https://github.com/duy-301205/chat_web"
+    },
+    {
         id: "cinema-booking-system",
         year: "2026",
         title: "Cinema Booking System",
